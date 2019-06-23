@@ -1,6 +1,6 @@
 import requests
 import json
-
+import math
 
 class Maze():
     def __init__(self, maze, A, B):
@@ -9,12 +9,31 @@ class Maze():
         self.maze = maze
         self.start = (A[1], A[0])
         self.goal = (B[1], B[0])
-        self.open = [A]
+        self.open = [(self.start[0], self.start[1], 0)]
         self.closed = []
+        self.path = ""
 
+    def heuristic(self, x, y):
+        return math.sqrt((self.goal[0] - x) ** 2 + (self.goal[1] - y) ** 2)
+
+    def addToOpen(self, node, path):
+        g = len(self.path) + 1
+        h = self.heuristic(node[0], node[1])
+        f = g + h
+        self.open.append((node.x, node.y, f))
+
+    def removeFromOpen(self):
+        least_f = self.open[0][2]
+        candidate = None
+        for node in self.open:
+            if least_f >= node[2]:
+                least_f = node[2]
+                candidate = node
+        return candidate
+
+                 
     def assertBounds(self, value):
         try:
-            print(self.h, self.w)
             if value[0] >= 0 and value[1] >= 0 and value[0] < self.h and value[1] < self.w:
                 return True
         except:
@@ -43,7 +62,7 @@ class Maze():
 
         # print("N: {} W: {} S: {} E: {}".format(N, W, S, E))
 
-        print(total)
+        return total
 
     def showMaze(self):
         print(self.start)
@@ -51,12 +70,24 @@ class Maze():
             print(self.maze[i])
 
     def solve(self):
-        pass
+        while self.open:
+            q = self.removeFromOpen()
+            self.open.remove(q)
+            possibleMoves = self.findNeighbors((q[0], q[1]))
+            for move in possibleMoves:
+                if move == 'N':
+                    N = (pos[0] - 1, pos[1], f)
+                
+
+            print(possibleMoves)
+
 
 
 data = json.loads(requests.get(
     "https://api.noopschallenge.com/mazebot/random?maxSize=10").content.decode("utf-8"))
+
 print(data)
 maze = Maze(data["map"], data["startingPosition"], data["endingPosition"])
 maze.showMaze()
 maze.findNeighbors(maze.start)
+maze.solve()
